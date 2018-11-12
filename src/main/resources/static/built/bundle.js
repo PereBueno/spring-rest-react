@@ -28471,13 +28471,13 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 
@@ -28502,8 +28502,13 @@ function (_React$Component) {
     _this = _possibleConstructorReturn(this, _getPrototypeOf(App).call(this, props));
     _this.state = {
       employees: [],
-      pageSize: 5
+      pageSize: 5,
+      links: [],
+      attributes: []
     };
+    _this.onCreate = _this.onCreate.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.onDelete = _this.onDelete.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.onNavigate = _this.onNavigate.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -28545,9 +28550,16 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      return React.createElement(EmployeeList, {
-        employees: this.state.employees
-      });
+      return React.createElement("div", null, React.createElement(CreateDialog, {
+        attributes: this.state.attributes,
+        onCreate: this.onCreate
+      }), React.createElement(EmployeeList, {
+        employees: this.state.employees,
+        links: this.state.links,
+        pageSize: this.state.pageSize,
+        onDelete: this.onDelete,
+        onNavigate: this.onNavigate
+      }));
     }
   }, {
     key: "onCreate",
@@ -28592,6 +28604,91 @@ function (_React$Component) {
       });
     }
   }, {
+    key: "onDelete",
+    value: function onDelete(employee) {
+      var _this5 = this;
+
+      console.log("Deleted" + employee.firstName + " " + employee.lastName);
+      client({
+        method: 'DELETE',
+        path: employee._links.self.href
+      }).done(function (response) {
+        _this5.loadFromServer(_this5.state.pageSize);
+      });
+    }
+  }]);
+
+  return App;
+}(React.Component);
+
+var EmployeeList =
+/*#__PURE__*/
+function (_React$Component2) {
+  _inherits(EmployeeList, _React$Component2);
+
+  function EmployeeList(props) {
+    var _this6;
+
+    _classCallCheck(this, EmployeeList);
+
+    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(EmployeeList).call(this, props));
+    _this6.handleNavFirst = _this6.handleNavFirst.bind(_assertThisInitialized(_assertThisInitialized(_this6)));
+    _this6.handleNavPrev = _this6.handleNavPrev.bind(_assertThisInitialized(_assertThisInitialized(_this6)));
+    _this6.handleNavNext = _this6.handleNavNext.bind(_assertThisInitialized(_assertThisInitialized(_this6)));
+    _this6.handleNavLast = _this6.handleNavLast.bind(_assertThisInitialized(_assertThisInitialized(_this6))); //this.onDelete = this.onDelete.bind(this);
+
+    return _this6;
+  }
+
+  _createClass(EmployeeList, [{
+    key: "render",
+    value: function render() {
+      var _this7 = this;
+
+      var employees = this.props.employees.map(function (employee) {
+        return React.createElement(Employee, {
+          key: employee._links.self.href,
+          employee: employee,
+          onDelete: _this7.props.onDelete
+        });
+      });
+      var navLinks = [];
+
+      if ("first" in this.props.links) {
+        navLinks.push(React.createElement("button", {
+          key: "first",
+          onClick: this.handleNavFirst
+        }, "<<"));
+      }
+
+      if ("prev" in this.props.links) {
+        navLinks.push(React.createElement("button", {
+          key: "prev",
+          onClick: this.handleNavPrev
+        }, "<"));
+      }
+
+      if ("next" in this.props.links) {
+        navLinks.push(React.createElement("button", {
+          key: "next",
+          onClick: this.handleNavNext
+        }, ">"));
+      }
+
+      if ("last" in this.props.links) {
+        navLinks.push(React.createElement("button", {
+          key: "last",
+          onClick: this.handleNavLast
+        }, ">>"));
+      }
+
+      return React.createElement("div", null, React.createElement("input", {
+        ref: "pageSize",
+        defaultValue: this.props.pageSize,
+        onInput: this.handleInput
+      }), React.createElement("table", null, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("th", null, "First Name"), React.createElement("th", null, "Last Name"), React.createElement("th", null, "Description")), employees)), React.createElement("div", null, navLinks));
+    }
+  }, {
     key: "handleNavFirst",
     value: function handleNavFirst(e) {
       e.preventDefault();
@@ -28617,50 +28714,6 @@ function (_React$Component) {
     }
   }]);
 
-  return App;
-}(React.Component);
-
-var EmployeeList =
-/*#__PURE__*/
-function (_React$Component2) {
-  _inherits(EmployeeList, _React$Component2);
-
-  function EmployeeList() {
-    _classCallCheck(this, EmployeeList);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(EmployeeList).apply(this, arguments));
-  }
-
-  _createClass(EmployeeList, [{
-    key: "render",
-    value: function render() {
-      var employees = this.props.employees.map(function (employee) {
-        return React.createElement(Employee, {
-          key: employee._links.self.href,
-          employee: employee
-        });
-      });
-      var navLinks = []; //        	if ("first" in this.props.links) {
-      //        		navLinks.push(<button key="first" onClick={this.handleNavFirst}>&lt;&lt;</button>);
-      //        	}
-      //        	if ("prev" in this.props.links) {
-      //        		navLinks.push(<button key="prev" onClick={this.handleNavPrev}>&lt;</button>);
-      //        	}
-      //        	if ("next" in this.props.links) {
-      //        		navLinks.push(<button key="next" onClick={this.handleNavNext}>&gt;</button>);
-      //        	}
-      //        	if ("last" in this.props.links) {
-      //        		navLinks.push(<button key="last" onClick={this.handleNavLast}>&gt;&gt;</button>);
-      //        	}
-
-      return React.createElement("div", null, React.createElement("pre", null, this.props), React.createElement("input", {
-        ref: "pageSize",
-        defaultValue: this.props.pageSize,
-        onInput: this.handleInput
-      }), React.createElement("table", null, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("th", null, "First Name"), React.createElement("th", null, "Last Name"), React.createElement("th", null, "Description")), employees)), React.createElement("div", null, navLinks));
-    }
-  }]);
-
   return EmployeeList;
 }(React.Component);
 
@@ -28669,16 +28722,27 @@ var Employee =
 function (_React$Component3) {
   _inherits(Employee, _React$Component3);
 
-  function Employee() {
+  function Employee(props) {
+    var _this8;
+
     _classCallCheck(this, Employee);
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(Employee).apply(this, arguments));
+    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(Employee).call(this, props));
+    _this8.handleDelete = _this8.handleDelete.bind(_assertThisInitialized(_assertThisInitialized(_this8)));
+    return _this8;
   }
 
   _createClass(Employee, [{
+    key: "handleDelete",
+    value: function handleDelete() {
+      this.props.onDelete(this.props.employee);
+    }
+  }, {
     key: "render",
     value: function render() {
-      return React.createElement("tr", null, React.createElement("td", null, this.props.employee.firstName), React.createElement("td", null, this.props.employee.lastName), React.createElement("td", null, this.props.employee.description));
+      return React.createElement("tr", null, React.createElement("td", null, this.props.employee.firstName), React.createElement("td", null, this.props.employee.lastName), React.createElement("td", null, this.props.employee.description), React.createElement("td", null, React.createElement("button", {
+        onClick: this.handleDelete
+      }, "Delete")));
     }
   }]);
 
@@ -28691,37 +28755,43 @@ function (_React$Component4) {
   _inherits(CreateDialog, _React$Component4);
 
   function CreateDialog(props) {
+    var _this9;
+
     _classCallCheck(this, CreateDialog);
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(CreateDialog).call(this, props));
+    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(CreateDialog).call(this, props));
+    _this9.handleSubmit = _this9.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this9)));
+    return _this9;
   }
 
   _createClass(CreateDialog, [{
     key: "handleSubmit",
     value: function handleSubmit(e) {
-      var _this5 = this;
+      var _this10 = this;
 
       e.preventDefault();
       var newEmployee = {};
       this.props.attributes.forEach(function (attr) {
-        newEmployee[attr] = ReactDOM.findNode(_this5.refs[attr]).value.trim();
+        newEmployee[attr] = ReactDOM.findDOMNode(_this10.refs[attr]).value.trim();
       });
       this.props.onCreate(newEmployee);
       this.props.attributes.forEach(function (attribute) {
-        ReactDOM.findDOMNode(_this5.refs[attribute]).value = '';
+        ReactDOM.findDOMNode(_this10.refs[attribute]).value = '';
       });
       window.location = "#";
     }
   }, {
     key: "render",
     value: function render() {
+      console.log(this.props.attributes);
+      console.log(this.props);
       var inputs = this.props.attributes.map(function (attr) {
         return React.createElement("p", {
           key: attr
         }, React.createElement("input", {
           type: "text",
-          placeholder: "{attr}",
-          ref: "{attr}",
+          placeholder: attr,
+          ref: attr,
           className: "field"
         }));
       });

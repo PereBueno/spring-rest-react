@@ -28485,6 +28485,10 @@ var ReactDOM = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/in
 
 var client = __webpack_require__(/*! ./client/client */ "./src/main/js/client/client.js");
 
+var follow = __webpack_require__(/*! ./follow */ "./src/main/js/follow.js");
+
+var root = '/api';
+
 var App =
 /*#__PURE__*/
 function (_React$Component) {
@@ -28505,14 +28509,35 @@ function (_React$Component) {
   _createClass(App, [{
     key: "componentDidMount",
     value: function componentDidMount() {
+      this.loadFromServer(this.state.pageSize);
+    }
+  }, {
+    key: "loadFromServer",
+    value: function loadFromServer(pageSize) {
       var _this2 = this;
 
-      client({
-        method: 'GET',
-        path: '/api/employees'
-      }).done(function (response) {
+      follow(client, root, [{
+        rel: 'employees',
+        params: {
+          size: pageSize
+        }
+      }]).then(function (employeeCollection) {
+        return client({
+          method: 'GET',
+          path: employeeCollection.entity._links.profile.href,
+          headers: {
+            'Accept': 'application/schema+json'
+          }
+        }).then(function (schema) {
+          _this2.schema = schema.entity;
+          return employeeCollection;
+        });
+      }).done(function (employeeCollection) {
         _this2.setState({
-          employees: response.entity._embedded.employees
+          employees: employeeCollection.entity._embedded.employees,
+          attributes: Object.keys(_this2.schema.properties),
+          pageSize: pageSize,
+          links: employeeCollection.entity._links
         });
       });
     }
@@ -28521,6 +28546,48 @@ function (_React$Component) {
     value: function render() {
       return React.createElement(EmployeeList, {
         employees: this.state.employees
+      });
+    }
+  }, {
+    key: "onCreate",
+    value: function onCreate(newEmployee) {
+      var _this3 = this;
+
+      follow(client, root, ['employees']).then(function (employeeCollection) {
+        return client({
+          method: 'POST',
+          path: employeeCollection.entity._links.self.href,
+          entity: newEmployee,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }).then(function (response) {
+        return follow(client, root, [{
+          rel: 'employees',
+          params: {
+            size: _this3.state.pageSize
+          }
+        }]);
+      }).done(function (response) {
+        if (typeof response.entity._links.last !== "undefined") _this3.onNavigate(response.entity._links.last.href);else _this3.onNavigate(response.entity._links.self.href);
+      });
+    }
+  }, {
+    key: "onNavigate",
+    value: function onNavigate(uri) {
+      var _this4 = this;
+
+      client({
+        method: 'GET',
+        path: uri
+      }).done(function (employeeCollection) {
+        _this4.setState({
+          employees: employeeCollection.entity._embedded.employees,
+          attributes: _this4.state.attributes,
+          pageSize: _this4.state.pageSize,
+          links: employeeCollection.entity._links
+        });
       });
     }
   }]);
@@ -28574,6 +28641,64 @@ function (_React$Component3) {
   }]);
 
   return Employee;
+}(React.Component);
+
+var CreateDialog =
+/*#__PURE__*/
+function (_React$Component4) {
+  _inherits(CreateDialog, _React$Component4);
+
+  function CreateDialog(props) {
+    _classCallCheck(this, CreateDialog);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(CreateDialog).call(this, props));
+  }
+
+  _createClass(CreateDialog, [{
+    key: "handleSubmit",
+    value: function handleSubmit(e) {
+      var _this5 = this;
+
+      e.preventDefault();
+      var newEmployee = {};
+      this.props.attributes.forEach(function (attr) {
+        newEmployee[attr] = ReactDOM.findNode(_this5.refs[attr]).value.trim();
+      });
+      this.props.onCreate(newEmployee);
+      this.props.attributes.forEach(function (attribute) {
+        ReactDOM.findDOMNode(_this5.refs[attribute]).value = '';
+      });
+      window.location = "#";
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var inputs = this.props.attributes.map(function (attr) {
+        return React.createElement("p", {
+          key: attr
+        }, React.createElement("input", {
+          type: "text",
+          placeholder: "{attr}",
+          ref: "{attr}",
+          className: "field"
+        }));
+      });
+      return React.createElement("div", null, React.createElement("a", {
+        href: "#createEmployee"
+      }, "Create"), React.createElement("div", {
+        id: "createEmployee",
+        className: "modalDialog"
+      }, React.createElement("div", null, React.createElement("a", {
+        href: "#",
+        title: "Close",
+        className: "close"
+      }, "X"), React.createElement("h2", null, "Create new employee"), React.createElement("form", null, inputs, React.createElement("button", {
+        onClick: this.handleSubmit
+      }, "Create")))));
+    }
+  }]);
+
+  return CreateDialog;
 }(React.Component); // Render the list!
 
 
@@ -28679,6 +28804,55 @@ module.exports = rest.wrap(mime, {
     'Accept': 'application/hal+json'
   }
 });
+
+/***/ }),
+
+/***/ "./src/main/js/follow.js":
+/*!*******************************!*\
+  !*** ./src/main/js/follow.js ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function follow(api, rootPath, relArray) {
+  var root = api({
+    method: 'GET',
+    path: rootPath
+  });
+  return relArray.reduce(function (root, arrayItem) {
+    var rel = typeof arrayItem === 'string' ? arrayItem : arrayItem.rel;
+    return traverseNext(root, rel, arrayItem);
+  }, root);
+
+  function traverseNext(root, rel, arrayItem) {
+    return root.then(function (response) {
+      if (hasEmbeddedRel(response.entity, rel)) {
+        return response.entity._embedded[rel];
+      }
+
+      if (!response.entity._links) {
+        return [];
+      }
+
+      if (typeof arrayItem === 'string') {
+        return api({
+          method: 'GET',
+          path: response.entity._links[rel].href
+        });
+      } else {
+        return api({
+          method: 'GET',
+          path: response.entity._links[rel].href,
+          params: arrayItem.params
+        });
+      }
+    });
+  }
+
+  function hasEmbeddedRel(entity, rel) {
+    return entity._embedded && entity._embedded.hasOwnProperty(rel);
+  }
+};
 
 /***/ }),
 

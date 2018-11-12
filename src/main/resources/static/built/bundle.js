@@ -28501,7 +28501,8 @@ function (_React$Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(App).call(this, props));
     _this.state = {
-      employees: []
+      employees: [],
+      pageSize: 5
     };
     return _this;
   }
@@ -28590,6 +28591,30 @@ function (_React$Component) {
         });
       });
     }
+  }, {
+    key: "handleNavFirst",
+    value: function handleNavFirst(e) {
+      e.preventDefault();
+      this.props.onNavigate(this.props.links.first.href);
+    }
+  }, {
+    key: "handleNavPrev",
+    value: function handleNavPrev(e) {
+      e.preventDefault();
+      this.props.onNavigate(this.props.links.prev.href);
+    }
+  }, {
+    key: "handleNavNext",
+    value: function handleNavNext(e) {
+      e.preventDefault();
+      this.props.onNavigate(this.props.links.next.href);
+    }
+  }, {
+    key: "handleNavLast",
+    value: function handleNavLast(e) {
+      e.preventDefault();
+      this.props.onNavigate(this.props.links.last.href);
+    }
   }]);
 
   return App;
@@ -28615,7 +28640,24 @@ function (_React$Component2) {
           employee: employee
         });
       });
-      return React.createElement("table", null, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("th", null, "First Name"), React.createElement("th", null, "Last Name"), React.createElement("th", null, "Description")), employees));
+      var navLinks = []; //        	if ("first" in this.props.links) {
+      //        		navLinks.push(<button key="first" onClick={this.handleNavFirst}>&lt;&lt;</button>);
+      //        	}
+      //        	if ("prev" in this.props.links) {
+      //        		navLinks.push(<button key="prev" onClick={this.handleNavPrev}>&lt;</button>);
+      //        	}
+      //        	if ("next" in this.props.links) {
+      //        		navLinks.push(<button key="next" onClick={this.handleNavNext}>&gt;</button>);
+      //        	}
+      //        	if ("last" in this.props.links) {
+      //        		navLinks.push(<button key="last" onClick={this.handleNavLast}>&gt;&gt;</button>);
+      //        	}
+
+      return React.createElement("div", null, React.createElement("pre", null, this.props), React.createElement("input", {
+        ref: "pageSize",
+        defaultValue: this.props.pageSize,
+        onInput: this.handleInput
+      }), React.createElement("table", null, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("th", null, "First Name"), React.createElement("th", null, "Last Name"), React.createElement("th", null, "Description")), employees)), React.createElement("div", null, navLinks));
     }
   }]);
 

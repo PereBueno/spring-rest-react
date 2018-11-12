@@ -25,6 +25,6 @@ public class DatabaseLoader implements CommandLineRunner {
         repository.save(new Employee("Lord", "Misterio", "Un misterio con cache"));
         repository.save(new Employee("Madamme", "Misterio", "Una misterio que regenta un lupanar"));
         repository.save(new Employee("Monseñor", "Misterio", "Un misterio místico"));
-        
+
     }
 }

@@ -12,6 +12,7 @@ class App extends React.Component {
 		this.onCreate = this.onCreate.bind(this);
 		this.onDelete = this.onDelete.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
+		this.updatePageSize = this.updatePageSize.bind(this);
 	}
 
 	componentDidMount() {
@@ -47,7 +48,8 @@ class App extends React.Component {
 			    links={this.state.links}
 			    pageSize={this.state.pageSize}
 			    onDelete={this.onDelete}
-			    onNavigate={this.onNavigate}/>
+			    onNavigate={this.onNavigate}
+			    updatePageSize={this.updatePageSize}/>
 			</div>
 		)
 	};
@@ -87,6 +89,11 @@ class App extends React.Component {
     		this.loadFromServer(this.state.pageSize);
     	});
     }
+
+    updatePageSize(size){
+        if (size != this.state.pageSize)
+            this.loadFromServer(size);
+    }
 }
 
 class EmployeeList extends React.Component{
@@ -96,7 +103,7 @@ class EmployeeList extends React.Component{
         this.handleNavPrev = this.handleNavPrev.bind(this);
    		this.handleNavNext = this.handleNavNext.bind(this);
    		this.handleNavLast = this.handleNavLast.bind(this);
-   		//this.onDelete = this.onDelete.bind(this);
+   		this.handleInput = this.handleInput.bind(this);
     }
     render(){
         const employees = this.props.employees.map(employee =>
@@ -134,6 +141,15 @@ class EmployeeList extends React.Component{
         );
     }
 
+    handleInput(e){
+        e.preventDefault(); //Not really needed here, just an input box
+        const pageSize = ReactDOM.findDOMNode(this.refs.pageSize).value // as we're using ref field of input
+        if (/^[0-9]+$/.test(pageSize)) // it's a number
+            this.props.updatePageSize(pageSize);
+        else{
+            ReactDOM.findDOMNode(this.refs.pageSize).value = pageSize.substring(0, pageSize.length - 1); // delete last character
+        }
+    }
     handleNavFirst(e){
         	e.preventDefault();
         	this.props.onNavigate(this.props.links.first.href);
@@ -193,8 +209,6 @@ class CreateDialog extends React.Component{
     }
 
     render(){
-        console.log(this.props.attributes);
-        console.log(this.props);
         const inputs = this.props.attributes.map(attr =>
             <p key={attr}>
                 <input type="text" placeholder={attr} ref={attr} className="field"/>

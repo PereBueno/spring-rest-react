@@ -18,5 +18,13 @@ public class DatabaseLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         repository.save(new Employee("Señor", "Misterio", "Es un misterio"));
+        repository.save(new Employee("Señora", "Misterio", "Es otro misterio"));
+        repository.save(new Employee("Señorita", "Misterio", "Es un misterio más pequeño"));
+        repository.save(new Employee("Mr.", "Misterio", "He is a misterio"));
+        repository.save(new Employee("Mrs.", "Misterio", "She is a misteria"));
+        repository.save(new Employee("Lord", "Misterio", "Un misterio con cache"));
+        repository.save(new Employee("Madamme", "Misterio", "Una misterio que regenta un lupanar"));
+        repository.save(new Employee("Monseñor", "Misterio", "Un misterio místico"));
+
     }
 }
